@@ -56,6 +56,18 @@ rotate_right(L, K, Result) :- length(L, Length),
 	append(LF, LL, Result), 
     !.
 
+rotate_left(L, N, R):-
+    length(L, Res),
+    N1 is N mod Res,
+    rotate_left_n(L, N1, R).
+rotate_left_n(L, 0, L).
+rotate_left_n([H|T], N, R):-
+    N > 0,
+    append(T, [H], L1),
+    N1 is N - 1,
+    rotate_left_n(L1, N1, R).
+
+
 % a predicate that decodes the elements of a list using the RLE (Runlength encoding) algorithm
 % an [element, number of occurrences] pair will be replaced with the sequence of equal and consecutive elements.
 rle_decode([], []).
