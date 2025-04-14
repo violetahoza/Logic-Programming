@@ -61,3 +61,13 @@ height_it(t(_, L, R), H) :-
     max(H1, H2, H3),
     H is H3 + 1.
 
+% compute the diameter of an incomplete binary tree
+diam_it(T, 0) :- var(T), !.
+diam_it(t(_, L, R), D) :- 
+		diam_it(L, DL),
+		diam_it(R, DR),
+		height_it(L, HL),
+		height_it(R, HR),
+		D1 is HL + HR + 1,
+		D is max(D1, max(DL, DR)).
+
