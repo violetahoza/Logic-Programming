@@ -122,8 +122,8 @@ even_dl(t(_, L, R), LS, LE) :-
 between_dl(T, LS, LS, _, _) :- var(T), !.
 between_dl(t(K, L, R), LS, LE, K1, K2) :-
     K > K1, K < K2, !,
-    between_dl(L, LS, LT, K1, K2),
-    between_dl(R, LT, [K|LE], K1, K2).
+    between_dl(L, LS, [K|LT], K1, K2),
+    between_dl(R, LT, LE, K1, K2).
 between_dl(t(_, L, R), LS, LE, K1, K2) :-
     between_dl(L, LS, LT, K1, K2),
     between_dl(R, LT, LE, K1, K2).
