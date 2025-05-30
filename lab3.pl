@@ -30,10 +30,10 @@ separate_parity([H|T], E, [H|O]) :- 1 is H mod 2,
 
 sep_par_bwd([], [], []).
 sep_par_bwd([H|T], E, O) :- 0 is H mod 2,
-	sep_par_bwd(T, E1, O), 
+    sep_par_bwd(T, E1, O), 
     E = [H|E1].
 sep_par_bwd([H|T], E, O) :- 1 is H mod 2,
-	sep_par_bwd(T, E, O1), 
+    sep_par_bwd(T, E, O1), 
     O = [H|O1].
 
 sep_par_fwd([], E, O, E, O).
