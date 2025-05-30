@@ -37,3 +37,39 @@ fib_fwd(N, A, B, Res) :- N > 0, N1 is N - 1,
     Sum is A + B,
     fib_fwd(N1, B, Sum, Res).
 fib_fwd(N, X) :- fib_fwd(N, 0, 1, X).
+
+% calculate the sum of all numbers smaller than a givem number
+for(0, 0, 0).
+for(Inter, Out, In) :- In > 0, NewIn is In - 1,
+    for(Inter, Intermediate, NewIn),
+    Out is In + Intermediate.
+    
+for1(Start, 0, End) :- Start > End.
+for1(Start, Sum, End) :- Start =< End,
+    Start1 is Start + 1, 
+    for1(Start1, S1, End), 
+ 	Sum is Start + S1.
+
+for_bwd(0, 0).
+for_bwd(N, Sum) :- N > 0, N1 is N - 1,
+    for_bwd(N1, S1), Sum is S1 + N.
+    
+
+% calculate the sum of all values between Low and High
+while_bwd(Low, High, 0) :- Low >= High.
+while_bwd(Low, High, Sum) :- Low < High,
+    Low1 is Low + 1,
+    while_bwd(Low1, High, S1), 
+    Sum is S1 + Low.
+
+while_fwd(Low, High, Acc, Acc) :- Low >= High.
+while_fwd(Low, High, Acc, Sum) :- Low < High,
+    Low1 is Low + 1, Acc1 is Acc + Low,
+    while_fwd(Low1, High, Acc1, Sum).
+while_fwd(Low, High, Sum) :- while_fwd(Low, High, 0, Sum).
+    
+dowhile(Low, High, 0) :- Low >= High.
+dowhile(Low, High, Sum) :- Low < High,
+    High1 is High - 1,
+    dowhile(Low, High1, S1),
+    Sum is S1 + High.
