@@ -22,7 +22,7 @@ append_il([H|T], L2, [H|R]) :- append_il(T, L2, R).
 reverse_il_bwd(L, L) :- var(L), !.
 reverse_il_bwd([H|T], R) :- 
     reverse_il_bwd(T, R1),
-    append_il(R1, [H|_], R).
+    append_il(R1, [H|_], R). % or append(R1, R2, R), !.
 
 reverse_il_fwd(L, L) :- var(L), !.
 reverse_il_fwd(List, Reversed) :- 
