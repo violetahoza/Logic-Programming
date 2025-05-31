@@ -9,6 +9,11 @@ convertIL2CL([H|T], [H|R]) :- convertIL2CL(T, R).
 convertCL2IL([], [_]).
 convertCL2IL([H|T], [H|R]) :- convertCL2IL(T, R).
 
+/*
+convertCL2IL([H|[]], [H|_]) :- !.
+convertCL2IL([H|T], [H|R]) :- convertCL2IL(T, R).
+*/
+
 % append 2 incomplete lists (the result is an incomplete list)
 append_il(L1, L2, L2) :- var(L1), !.
 append_il([H|T], L2, [H|R]) :- append_il(T, L2, R).
