@@ -1,3 +1,18 @@
+union([], L2, L2).
+union([H|T], L2, R) :- member(H, L2), !,
+    union(T, L2, R).
+union([H|T], L2, [H|R]) :- union(T, L2, R).
+
+intersect([], _, []).
+intersect([H|T], L2, [H|R]) :- member(H, L2), !,
+    intersect(T, L2, R).
+intersect([_|T], L2, R) :- intersect(T, L2, R).
+
+diff([], _, []).
+diff([H|T], L2, R) :- member(H, L2), !,
+    diff(T, L2, R).
+diff([H|T], L2, [H|R]) :- diff(T, L2, R).
+
 min([H|T], M) :- min(T, M), M < H, !.
 min([H|_], H).
 
