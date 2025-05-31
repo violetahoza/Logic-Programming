@@ -82,6 +82,15 @@ rotate_left_n([H|T], N, R):-
     N1 is N - 1,
     rotate_left_n(L1, N1, R).
 
+rnd_select(_, 0, []).
+rnd_select(L, K, [X|R]) :-
+    K > 0, 
+    length(L, Len),
+    random_between(1, Len, Pos),
+    nth1(Pos, L, X),
+    select(X, L, L1),
+    K1 is K - 1,
+    rnd_select(L1, K1, R).
 
 % a predicate that decodes the elements of a list using the RLE (Runlength encoding) algorithm
 % an [element, number of occurrences] pair will be replaced with the sequence of equal and consecutive elements.
