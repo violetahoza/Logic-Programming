@@ -70,3 +70,11 @@ pos_dep([H|T], Pos, Dep, R) :-
 	pos_dep(H, 1, Dep1, RH),
     pos_dep(T, Pos1, Dep, RT),
     R = [RH|RT].
+
+member_deterministic(X, [X|_]) :- atomic(X), !.
+member_deterministic(X, [H|T]) :- atomic(H), !,
+    member_deterministic(X, T).
+member_deterministic(X, [H|_]) :- 
+    member_deterministic(X, H), !.
+member_deterministic(X, [_|T]) :-
+    member_deterministic(X, T).
