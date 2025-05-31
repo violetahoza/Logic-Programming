@@ -38,14 +38,14 @@ flat_il([H|T], [H|R]) :- atomic(H), !, flat_il(T, R).
 flat_il([H|T], R) :- flat_il(H, R1), flat_il(T, R2), 
 	append_il(R1, R2, R).  % or append(R1, R2, R), !.
 
-preorder_it(T, _) :- var(T), !.
+preorder_it(T, _) :- var(T), !. % preorder_it(t(K, _, _), _) :- var(K), !.
 preorder_it(t(K, L, R), List) :- 
 	preorder_it(L, LL),
 	preorder_it(R, LR),
 	append_il([K|LL], LR, List).
 
 % transform an incomplete tree into a complete tree
-convertIT2CT(t(K, _, _), nil) :- var(K), !.
+convertIT2CT(t(K, _, _), nil) :- var(K), !. % convertIT2CT(T, nil) :- var(T), !.
 convertIT2CT(t(K, L, R), t(K, RL, RR)) :- 
 	convertIT2CT(L, RL), 
 	convertIT2CT(R, RR).
