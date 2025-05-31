@@ -77,3 +77,6 @@ diam_it(t(_, L, R), D) :-
 		D1 is HL + HR + 1,
 		D is max(D1, max(DL, DR)).
 
+subl_il(Sub, List) :-
+    append(_, Rest, List), 
+    append(Sub, _, Rest), !.
