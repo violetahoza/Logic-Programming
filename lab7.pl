@@ -71,6 +71,20 @@ internal_list1(t(K, L, R), Res) :-
     internal_list1(R, LR),
     append(LL, [K|LR], Res).
 
+/*
+internal_list(t(_, nil, nil), []).
+internal_list(t(K, L, nil), Res) :-
+    internal_list(L, R1),
+    append([K], R1, Res).
+internal_list(t(K, nil, R), Res) :-
+    internal_list(R, R1),
+    append([K], R1, Res).
+internal_list(t(K, L, R), Res) :-
+    internal_list(L, R1),
+    internal_list(R, R2),
+    append(R1, [K|R2], Res).
+*/
+
 height(nil, 0).
 height(t(_, L, R), H):-
    height(L, H1),
