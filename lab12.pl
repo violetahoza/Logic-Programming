@@ -54,6 +54,13 @@ replace_all(X, Y, [X|T], [Y|R]) :- !, replace_all(X, Y, T, R).
 replace_all(X, Y, [H|T], [H|R]) :- replace_all(X, Y, T, R).
 */
 
+replace_all(_, E, E, _, []). % base case: empty difference list
+replace_all(X, [X|T], E, Y, R) :- !,
+    replace_all(X, T, E, Y, R1),
+    R = [Y,X,Y|R1].
+replace_all(X, [H|T], E, Y, [H|R]) :-
+    replace_all(X, T, E, Y, R).
+
 delete_pos_even(L, X, R) :- delete_pos_even(L, X, 1, R).
 delete_pos_even([], _, _, []).
 delete_pos_even([X|T], X, Pos, [X|R]) :-
@@ -244,3 +251,165 @@ depth_list([H|T], D) :-
     depth_list(H, D1), depth_list(T, D2), D3 is D1 + 1,
     max_list([D3, D2], D).
     
+flatten(L, L) :- var(L), !.
+flatten([H|T], [H|R]) :- atomic(H), !, flatten(T, R).
+flatten([H|T], R) :- flatten(H, R1), flatten(T, R2),
+    append(R1, R2, R), !.
+
+count_lists([], 1).
+count_lists([H|T], R) :- atomic(H), !, count_lists(T, R).
+count_lists([H|T], R) :- count_lists(H, R1), count_lists(T, R2), R is R1 + R2.
+
+replace_all_deep(_, _, [], []).
+replace_all_deep(X, Y, [H|T], [Y|R]) :- atomic(H), H = X, !,
+    replace_all_deep(X, Y, T, R).
+replace_all_deep(X, Y, [H|T], [H|R]) :- atomic(H), !,
+    replace_all_deep(X, Y, T, R).
+replace_all_deep(X, Y, [H|T], [RH|RT]) :- 
+    replace_all_deep(X, Y, H, RH),
+    replace_all_deep(X, Y, T, RT).
+
+% Trees
+
+tree1(t(6, t(4, t(2, nil, nil), t(5, nil, nil)), t(9, t(7, nil, nil), nil))). 
+tree2(t(3, t(2, t(1, nil, nil), t(4, nil, nil)), t(5, nil, nil))). 
+
+depth_tree(nil, 0).
+depth_tree(t(_, L, R), D) :- depth_tree(L, D1), depth_tree(R, D2),
+    max_list([D1, D2], D3), D is D3 + 1.
+    
+inorder(t(K, L, R), In) :- inorder(L, R1), inorder(R, R2), append(R1, [K|R2], In).
+inorder(nil, []).
+
+collect_k(nil, []) :- !.
+collect_k(t(K, nil, nil), [K]) :- !.
+collect_k(t(_, L, R), Leaves) :- collect_k(L, L1), collect_k(R, L2), append(L1, L2, Leaves).
+
+is_bst(nil) :- !. 
+is_bst(t(K, L, R)) :- all_smaller(L, K), all_greater(R, K), is_bst(L), is_bst(R).
+
+all_smaller(nil, _).
+all_smaller(t(K, L, R), X) :- K < X, all_smaller(L, X), all_smaller(R, X).
+
+all_greater(nil, _).
+all_greater(t(K, L, R), X) :- K > X, all_greater(L, X), all_greater(R, X).
+
+collect_odd_from_1child(T, Res) :- collect_odd_from_1child(T, Res, _).  
+collect_odd_from_1child(T, Tail, Tail) :- var(T), !.
+collect_odd_from_1child(t(K, L, R), H, T) :-
+    0 is K mod 2, !,
+    collect_odd_from_1child(L, H, T1),
+    collect_odd_from_1child(R, T1, T).
+collect_odd_from_1child(t(K, L, R), [K|T1], T) :-
+    var(L), \+ var(R), !,
+    collect_odd_from_1child(R, T1, T).
+collect_odd_from_1child(t(K, L, R), [K|T1], T) :-
+    var(R), \+ var(L), !,
+    collect_odd_from_1child(L, T1, T).
+collect_odd_from_1child(t(_, L, R), H, T) :-
+    collect_odd_from_1child(L, H, T1),
+    collect_odd_from_1child(R, T1, T).
+
+collect_between(T, _, _, E, E) :- var(T), !.
+collect_between(t(K, L, M, R), X, Y, [K|S], E) :-
+    K >= X, K =< Y, !,
+    collect_between(L, X, Y, S, E1),
+    collect_between(M, X, Y, E1, E2),
+    collect_between(R, X, Y, E2, E).
+collect_between(t(_, L, M, R), X, Y, S, E) :-
+    collect_between(L, X, Y, S, E1),
+    collect_between(M, X, Y, E1, E2),
+    collect_between(R, X, Y, E2, E).
+    
+collect_even_from_leaf(nil, E, E).
+collect_even_from_leaf(t(K, nil, nil), [K|S], S) :- 0 is K mod 2, !.
+collect_even_from_leaf(t(_, nil, nil), S, S).
+collect_even_from_leaf(t(_, L, R), S, E) :-
+    collect_even_from_leaf(L, S, E1),
+    collect_even_from_leaf(R, E1, E).
+
+min([], inf).
+min([H|T], H) :- min(T, MT), MT == inf, !.
+min([H|T], MT) :- min(T, MT), H > MT.
+min([H|_], H).
+
+min_tree(nil, inf).
+min_tree(t(K, L, M, R), Min) :-
+    min_tree(L, ML), min_tree(M, MM), min_tree(R, MR),
+    min([K, ML, MM, MR], Min).
+
+get_root(t(Root, _, _, _), Root).
+
+replace_min(T, R) :-
+    min_tree(T, Min), get_root(T, Root), !,
+    replace_min_helper(T, Min, Root, R).
+
+replace_min_helper(nil, _, _, nil).
+replace_min_helper(t(Min, L, M, R), Min, Root, t(Root, NL, NM, NR)) :- !,
+    replace_min_helper(L, Min, Root, NL),
+    replace_min_helper(M, Min, Root, NM),
+    replace_min_helper(R, Min, Root, NR).
+replace_min_helper(t(K, L, M, R), Min, Root, t(K, NL, NM, NR)) :-
+    replace_min_helper(L, Min, Root, NL),
+    replace_min_helper(M, Min, Root, NM),
+    replace_min_helper(R, Min, Root, NR).
+
+collect_k(nil, _, []).
+collect_k(t(K, _, _), 0, [K]).
+collect_k(t(_, L, R), D, Res) :-
+    D > 0, !, D1 is D - 1, 
+    collect_k(L, D1, RL), collect_k(R, D1, RR), append(RL, RR, Res).
+
+collect_all_odd_depth(T, R) :- collect_all_odd_depth(T, R, 0).
+collect_all_odd_depth(T, [], _) :- var(T), !.
+collect_all_odd_depth(t(K, L, R), Res, D) :- 1 is D mod 2, !, D1 is D + 1,
+    collect_all_odd_depth(L, RL, D1),
+    collect_all_odd_depth(R, RR, D1),
+    append([K|RL], RR, Res).
+collect_all_odd_depth(t(_, L, R), Res, D) :- D1 is D + 1,
+    collect_all_odd_depth(L, RL, D1),
+    collect_all_odd_depth(R, RR, D1),
+    append(RL, RR, Res).
+
+/*
+preorder(T, []) :- var(T), !.
+preorder(t(K, L, M, R), Res) :-
+    preorder(L, LL),
+    preorder(R, LR),
+    preorder(M, LM),
+    append([K|LL], LM, R1),
+    append(R1, LR, Res).
+
+quick_sort([H|T], R) :- partition(H, T, Sm, Lg),
+    quick_sort(Sm, S), 
+    quick_sort(Lg, L),
+    append(S, [H|L], R).
+quick_sort([], []).
+
+partition(_, [], [], []).
+partition(P, [X|T], [X|S], L) :- P > X, !,
+    partition(P, T, S, L).
+partition(P, [X|T], S, [X|L]) :- partition(P, T, S, L).
+
+mid_el(L, M) :- length(L, Len),
+    Mid is Len // 2,
+    nth0(Mid, L, M).
+
+median(T, R) :- preorder(T, P),
+    quick_sort(P, S), mid_el(S, M),
+    collect_subtrees(T, M, R).
+
+collect_subtrees([], _, []) :- !.
+collect_subtrees(t(K, L, M, R), K, [t(K, L, M, R)|Rest]) :-
+    collect_subtrees(L, K, RL),
+    collect_subtrees(M, K, RM),
+    collect_subtrees(R, K, RR),
+    append(RL, RM, Temp),
+    append(Temp, RR, Rest), !.
+collect_subtrees(t(_, L, M, R), K, Res) :-
+    collect_subtrees(L, K, RL),
+    collect_subtrees(M, K, RM),
+    collect_subtrees(R, K, RR),
+    append(RL, RM, Temp),
+    append(Temp, RR, Res).
+*/
