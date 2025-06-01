@@ -278,6 +278,31 @@ collect_atoms_at_depth([_|T], CurrentDepth, Target, Result) :-
     collect_atoms_at_depth(T, CurrentDepth, Target, Result).
 
 
+/*
+collect_atoms_at_depth(L, _, _, []) :- var(L),!.
+collect_atoms_at_depth([H|T], Depth, Depth, [H|Rest]) :-
+    atomic(H), !,
+    collect_atoms_at_depth(T, Depth, Depth, Rest).
+collect_atoms_at_depth([H|T], Depth, Depth, Rest) :-
+    \+ atomic(H), !,
+    collect_atoms_at_depth(T, Depth, Depth, Rest).
+collect_atoms_at_depth([H|T], CurrentDepth, Target, Result) :-
+     \+ atomic(H), 
+    CurrentDepth < Target, !,
+    NextDepth is CurrentDepth + 1,
+    collect_atoms_at_depth(H, NextDepth, Target, HeadResult),
+    collect_atoms_at_depth(T, CurrentDepth, Target, TailResult),
+    append(HeadResult, TailResult, Result).
+collect_atoms_at_depth([_|T], CurrentDepth, Target, Result) :-
+    collect_atoms_at_depth(T, CurrentDepth, Target, Result).
+
+sum_list([], 0).
+sum_list([H|T], S) :- sum_list(T, S1), S is S1 + H.
+
+sum_k(L, D, R) :- collect_atoms_at_depth(L, 1, D, PR),
+    sum_list(PR, R).
+*/
+
 count_lists([], 1).
 count_lists([H|T], R) :- atomic(H), !, count_lists(T, R).
 count_lists([H|T], R) :- count_lists(H, R1), count_lists(T, R2), R is R1 + R2.
