@@ -11,9 +11,7 @@ to_binary(X, R) :- to_binary(X, [], R).
 
 divisor(0, 'alot') :- !.
 divisor(1, [1]) :- !.
-divisor(N, D) :- N > 1,
-    divs(N, 1, [], R),
-    reverse(R, D).
+divisor(N, D) :- N > 1, divs(N, 1, [], R), reverse(R, D).
 
 divs(N, Curr, Acc, Acc) :- Curr > N, !.
 divs(N, Curr, Acc, R) :- 0 is N mod Curr, !,
@@ -53,6 +51,13 @@ replace_all(_, _, [], []).
 replace_all(X, Y, [X|T], [Y|R]) :- !, replace_all(X, Y, T, R).
 replace_all(X, Y, [H|T], [H|R]) :- replace_all(X, Y, T, R).
 */
+
+replace_all(_, E, E, _, []). % base case: empty difference list
+replace_all(X, [X|T], E, Y, R) :- !,
+    replace_all(X, T, E, Y, R1),
+    R = [Y,X,Y|R1].
+replace_all(X, [H|T], E, Y, [H|R]) :-
+    replace_all(X, T, E, Y, R).
 
 delete_pos_even(L, X, R) :- delete_pos_even(L, X, 1, R).
 delete_pos_even([], _, _, []).
@@ -286,3 +291,20 @@ all_smaller(t(K, L, R), X) :- K < X, all_smaller(L, X), all_smaller(R, X).
 
 all_greater(nil, _).
 all_greater(t(K, L, R), X) :- K > X, all_greater(L, X), all_greater(R, X).
+
+collect_odd_from_1child(T, Res) :- collect_odd_from_1child(T, Res, _).  
+collect_odd_from_1child(T, Tail, Tail) :- var(T), !.
+collect_odd_from_1child(t(K, L, R), H, T) :-
+    0 is K mod 2, !,
+    collect_odd_from_1child(L, H, T1),
+    collect_odd_from_1child(R, T1, T).
+collect_odd_from_1child(t(K, L, R), [K|T1], T) :-
+    var(L), \+ var(R), !,
+    collect_odd_from_1child(R, T1, T).
+collect_odd_from_1child(t(K, L, R), [K|T1], T) :-
+    var(R), \+ var(L), !,
+    collect_odd_from_1child(L, T1, T).
+collect_odd_from_1child(t(_, L, R), H, T) :-
+    collect_odd_from_1child(L, H, T1),
+    collect_odd_from_1child(R, T1, T).
+
