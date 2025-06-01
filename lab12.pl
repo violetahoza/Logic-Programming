@@ -255,6 +255,28 @@ flatten(L, L) :- var(L), !.
 flatten([H|T], [H|R]) :- atomic(H), !, flatten(T, R).
 flatten([H|T], R) :- flatten(H, R1), flatten(T, R2),
     append(R1, R2, R), !.
+    
+
+flatten_only_depth(List, TargetDepth, Result) :-
+    collect_atoms_at_depth(List, 1, TargetDepth, Result).
+
+collect_atoms_at_depth([], _, _, []) :- !.
+collect_atoms_at_depth([H|T], Depth, Depth, [H|Rest]) :-
+    atomic(H), !,
+    collect_atoms_at_depth(T, Depth, Depth, Rest).
+collect_atoms_at_depth([H|T], Depth, Depth, Rest) :-
+    is_list(H), !,
+    collect_atoms_at_depth(T, Depth, Depth, Rest).
+collect_atoms_at_depth([H|T], CurrentDepth, Target, Result) :-
+    is_list(H), 
+    CurrentDepth < Target, !,
+    NextDepth is CurrentDepth + 1,
+    collect_atoms_at_depth(H, NextDepth, Target, HeadResult),
+    collect_atoms_at_depth(T, CurrentDepth, Target, TailResult),
+    append(HeadResult, TailResult, Result).
+collect_atoms_at_depth([_|T], CurrentDepth, Target, Result) :-
+    collect_atoms_at_depth(T, CurrentDepth, Target, Result).
+
 
 count_lists([], 1).
 count_lists([H|T], R) :- atomic(H), !, count_lists(T, R).
@@ -413,3 +435,27 @@ collect_subtrees(t(_, L, M, R), K, Res) :-
     append(RL, RM, Temp),
     append(Temp, RR, Res).
 */
+
+height_each(T, T) :- var(T), !.
+height_each(t(_, L, R), t(H, HL, HR)) :-
+    height_each(L, HL), height_each(R, HR),
+    tree_height(HL, H1), tree_height(HR, H2),
+    max_list([H1, H2], H3),
+    H is H3 + 1, !. 
+
+tree_height(T, -1) :- var(T), !.
+tree_height(t(Height, _, _), Height).
+
+sum_subtree(nil, _, nil).
+sum_subtree(t(Key, Left, Right), Key, t(Sum, nil, nil)) :- !,
+    sum_tree(t(Key, Left, Right), Sum).
+sum_subtree(t(Key, Left, Right), Target, t(Key, NewLeft, Right)) :-
+    sum_subtree(Left, Target, NewLeft), !.
+sum_subtree(t(Key, Left, Right), Target, t(Key, Left, NewRight)) :-
+    sum_subtree(Right, Target, NewRight), !.
+
+sum_tree(nil, 0).
+sum_tree(t(Key, Left, Right), Sum) :-
+    sum_tree(Left, SumLeft),
+    sum_tree(Right, SumRight),
+    Sum is Key + SumLeft + SumRight.
