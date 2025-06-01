@@ -255,7 +255,7 @@ flatten(L, L) :- var(L), !.
 flatten([H|T], [H|R]) :- atomic(H), !, flatten(T, R).
 flatten([H|T], R) :- flatten(H, R1), flatten(T, R2),
     append(R1, R2, R), !.
-    
+
 
 flatten_only_depth(List, TargetDepth, Result) :-
     collect_atoms_at_depth(List, 1, TargetDepth, Result).
@@ -459,3 +459,89 @@ sum_tree(t(Key, Left, Right), Sum) :-
     sum_tree(Left, SumLeft),
     sum_tree(Right, SumRight),
     Sum is Key + SumLeft + SumRight.
+
+% input: a list of lists representing a square matrix; compute the sum of elements on the 1st diagonal
+% sum([1,2,3],[[4,5,6],[7,8,9]], R). R=15
+
+sum(L, S) :- sum(L, 1, S).
+sum([], _, 0).
+sum([H|T], I, S) :- 
+    nth(I, H, E), I1 is I + 1,
+    sum(T, I1, Sum), S is Sum + E.
+
+nth(1, [H|_], H).
+nth(N, [_|T], E) :- N > 1, N1 is N - 1, nth(N1, T, E).
+
+% input: deep list of numbers; compute the sum of all the numbers that are either first or the last in an inner list
+% sum_fl([1,3,[1,2,7], [[3, 6, 11, 12]], 10], R). R=34
+
+sum_fl(L ,R) :- sum_fl(L, 1, R).
+sum_fl([], _ ,0).
+sum_fl([H], _, H) :- atomic(H), !.
+sum_fl([H], _, R) :- 
+    sum_fl(H, _, R).
+sum_fl([H|T], 1, R) :- 
+    atomic(H), !,
+    sum_fl(T, 0, RT),
+    R is H + RT.
+sum_fl([H|T], 0, R) :- 
+    atomic(H), !, 
+    sum_fl(T, 0, R).
+sum_fl([H|T], F, R) :-
+    sum_fl(H, 1, RH),
+    sum_fl(T, F, RT),
+    R is RH + RT.
+
+% input: a binary incomplete tree with numbers assigned to each node; for each node at an even depth, replace the values of its right and left children
+% if the node has only one child, replace the whole subtree instead (from left to right / from right to left)
+
+tree(t(16, 
+       t(10, t(7, t(1, _, _), _),
+       t(6, t(8, _, _), _)
+       ),
+     t(4, _, t(12, _, t(3, _, _))))).
+
+switch_kids(T, R) :- switch_kids(T, 0, R).
+switch_kids(nil, _, nil) :- !.
+%switch_kids(t(Key, nil, nil), _, t(Key, nil, nil)) :- !.
+switch_kids(t(Key, Left, Right), Depth, t(Key, NewRight, NewLeft)) :- 
+    1 is Depth mod 2, !, 
+    DepthKids is Depth + 1, 
+    switch_kids(Left, DepthKids, NewLeft),
+    switch_kids(Right, DepthKids, NewRight).
+switch_kids(t(Key, Left, Right), Depth, t(Key, NewLeft, NewRight)) :- 
+    DepthKids is Depth + 1, 
+    switch_kids(Left, DepthKids, NewLeft),
+    switch_kids(Right, DepthKids0, NewRight).
+
+% input: ternary tree with numbers assigned to each node; find a branch of the tree by always going to the largest child node; print the branch in form of a list of nodes
+% tree1(T), high_traverse(T, L). L=[16, 12, 5, 4]
+tree1(t(16, 
+        t(10, nil, nil), 
+        t(12, 
+          t(5, nil, t(4, nil, nil, nil), nil),
+		  t(2, nil, t(32, nil, nil, nil), 
+            t(2, nil, nil, nil)), nil
+          ),
+        t(4, nil, nil, nil)
+        )
+      ).
+
+high_traverse(t(Key, Left, Middle, Right), L) :- 
+    high_traverse(t(Key, Left, Middle, Right), [Key] ,L).
+high_traverse(nil, Acc, Acc).
+high_traverse(t(_, nil, nil, nil), Acc, Acc) :- !.
+high_traverse(t(_, Left, Middle, Right), Acc, R) :- 
+    child(Left, LeftKey), child(Middle, MiddleKey), child(Right, RightKey),
+    LeftKey > MiddleKey, LeftKey > RightKey, !, 
+    high_traverse(Left, [LeftKey|Acc], R).
+high_traverse(t(_, _, Middle, Right), Acc, R) :- 
+    child(Middle, MiddleKey), child(Right, RightKey),
+    MiddleKey > RightKey, !, 
+    high_traverse(Middle, [MiddleKey|Acc], R).
+high_traverse(t(_, _, _, Right), Acc, R) :- 
+    child(Right, RightKey), !, 
+    high_traverse(Right, [RightKey|Acc], R).
+
+child(nil,-10000) :- !.
+child(t(Key, _, _, _), Key).
